@@ -4,13 +4,16 @@
     "name": "Atlanta Journal-Constitution",
     "account_guid": "6dfa9ed1-0422-410f-87ca-d1b9e2242d26",
     "pub_guid": "c5478649-05c2-49ad-9482-128a089f3d3d",
+    "api_type": "published",
     "credential_prefix": "AJC"
   },
   {
     "slug": "dmn",
     "name": "Dallas Morning News",
-    "account_guid": "",
-    "pub_guid": "",
+    "account_guid": "6ec5a337-4027-4039-ab82-1e20cb55749a",
+    "pub_guid": "d7d94d17-1cc1-4585-94e9-f98d19763bdb",
+    "api_type": "replica",
+    "api_key": "xCtvekCQhP6ogqctaUSWeaJ4cXlMhBtu2eazzt9c",
     "credential_prefix": "DMN"
   }
 ]
