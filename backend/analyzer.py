@@ -72,26 +72,26 @@ Pay special attention to ads from these clients (case-insensitive):
 If you find any ads from these specific clients, make sure to note them clearly.
 """
 
-    prompt = f"""Analyze this newspaper page image and identify ALL advertisements.
+    prompt = f"""Analyze this newspaper page image and identify all PAID ADVERTISEMENTS.
 
-For each advertisement found, provide:
-1. Advertiser name (the company/business being advertised)
+CRITICAL RULES:
+- Each ad is a single rectangular block placed by ONE advertiser/company. One ad = one advertiser.
+- Standard newspaper ad sizes are: full page, half page, quarter page, eighth page, strip/banner.
+- An ad may contain images of products, cars, people, logos, etc. — these are PART OF the ad, not separate ads. For example, a credit union ad showing a car for auto loans is ONE ad by the credit union, NOT a separate car ad.
+- The advertiser is whoever PAID for the ad — look for the company name, logo, phone number, or website in the ad. Stock photos and product images within an ad do not indicate a separate advertiser.
+- Do NOT count editorial content, news articles, photos, weather, comics, or other non-advertising content.
+- Do NOT count the newspaper's own house ads or section headers.
+
+For each advertisement, provide:
+1. Advertiser name (the company/business that paid for the ad)
 2. Brief description of what's being advertised
 3. Location on page (e.g., "top right", "bottom half", "left column")
-4. Size (e.g., "full page", "half page", "quarter page", "small banner", "classified")
+4. Size (use standard sizes: "full page", "half page", "quarter page", "eighth page", "strip/banner", "classified")
 5. Confidence level (high/medium/low)
 
 {client_context}
 
-Format your response as a structured list. If there are no ads on this page, say "No advertisements found."
-
-Be thorough - look for:
-- Display ads (large visual ads)
-- Banner ads
-- Small business ads
-- Classified-style ads
-- Sponsored content
-- Any commercial messaging
+If there are no paid ads on this page, say "No advertisements found."
 
 Respond in this exact format for each ad:
 ---
