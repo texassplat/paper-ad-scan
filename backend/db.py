@@ -85,20 +85,102 @@ def ensure_page(supabase: Client, edition_id: int, page_num: int,
     return result.data[0]["id"]
 
 
-def insert_ads(supabase: Client, page_id: int, ads: list[dict]):
-    """Insert ad records for a page. Clears existing ads for that page first."""
+def normalize_advertiser_name(name: str) -> str:
+    """Normalize advertiser name: strip whitespace, title-case."""
+    return name.strip().title()
+
+
+def ensure_advertiser(supabase: Client, name: str) -> int:
+    """Insert or get advertiser record by normalized name. Returns advertiser ID."""
+    normalized = normalize_advertiser_name(name)
+    result = supabase.table("advertisers").select("id").eq("name", normalized).execute()
+    if result.data:
+        return result.data[0]["id"]
+
+    result = supabase.table("advertisers").insert({
+        "name": normalized
+    }).execute()
+    return result.data[0]["id"]
+
+
+def update_advertiser_papers(supabase: Client, advertiser_id: int,
+                             paper_id: int, date_str: str):
+    """Upsert advertiser_papers record. Tracks per-paper ad counts and date range."""
+    result = (supabase.table("advertiser_papers")
+              .select("id, ad_count, first_seen, last_seen")
+              .eq("advertiser_id", advertiser_id)
+              .eq("paper_id", paper_id)
+              .execute())
+    if result.data:
+        row = result.data[0]
+        updates = {"ad_count": (row["ad_count"] or 0) + 1}
+        if not row["first_seen"] or date_str < row["first_seen"]:
+            updates["first_seen"] = date_str
+        if not row["last_seen"] or date_str > row["last_seen"]:
+            updates["last_seen"] = date_str
+        supabase.table("advertiser_papers").update(updates).eq("id", row["id"]).execute()
+    else:
+        supabase.table("advertiser_papers").insert({
+            "advertiser_id": advertiser_id,
+            "paper_id": paper_id,
+            "ad_count": 1,
+            "first_seen": date_str,
+            "last_seen": date_str
+        }).execute()
+
+
+def refresh_advertiser_stats(supabase: Client):
+    """Recalculate paper_count and total_ad_count on all advertisers from actual data."""
+    advertisers = supabase.table("advertisers").select("id").execute()
+    for adv in advertisers.data or []:
+        adv_id = adv["id"]
+        # Count distinct papers
+        ap_rows = (supabase.table("advertiser_papers")
+                   .select("paper_id")
+                   .eq("advertiser_id", adv_id)
+                   .execute())
+        paper_count = len(ap_rows.data) if ap_rows.data else 0
+
+        # Count total ads
+        ad_result = (supabase.table("ads")
+                     .select("id", count="exact", head=True)
+                     .eq("advertiser_id", adv_id)
+                     .execute())
+        total_ad_count = ad_result.count or 0
+
+        supabase.table("advertisers").update({
+            "paper_count": paper_count,
+            "total_ad_count": total_ad_count
+        }).eq("id", adv_id).execute()
+
+
+def insert_ads(supabase: Client, page_id: int, ads: list[dict],
+               paper_id: int = None, date_str: str = None):
+    """Insert ad records for a page. Clears existing ads for that page first.
+    If paper_id and date_str provided, also links to advertiser entities."""
     # Delete existing ads for this page
     supabase.table("ads").delete().eq("page_id", page_id).execute()
 
     for ad in ads:
-        supabase.table("ads").insert({
+        record = {
             "page_id": page_id,
             "advertiser": ad["advertiser"],
             "description": ad.get("description", ""),
             "location": ad.get("location", ""),
             "size": ad.get("size", ""),
             "confidence": ad.get("confidence", "medium")
-        }).execute()
+        }
+
+        # Link to advertiser entity
+        if ad.get("advertiser"):
+            advertiser_id = ensure_advertiser(supabase, ad["advertiser"])
+            record["advertiser_id"] = advertiser_id
+
+            # Update advertiser_papers if we know the paper/date
+            if paper_id and date_str:
+                update_advertiser_papers(supabase, advertiser_id, paper_id, date_str)
+
+        supabase.table("ads").insert(record).execute()
 
 
 def upload_page_image(supabase: Client, local_path: Path, storage_path: str):
@@ -167,7 +249,11 @@ def upload_edition(paper_config: dict, date_str: str, edition_dir: Path,
         # Insert ads for this page
         page_ads = [a for a in all_ads if a.get("page") == page_num]
         if page_ads:
-            insert_ads(supabase, page_id, page_ads)
+            insert_ads(supabase, page_id, page_ads,
+                       paper_id=paper_id, date_str=date_str)
             print(f"    {len(page_ads)} ads")
 
+    # Refresh advertiser aggregate stats
+    print("  Refreshing advertiser stats...")
+    refresh_advertiser_stats(supabase)
     print(f"  Done: {page_count} pages, {ad_count} ads uploaded")

@@ -35,3 +35,20 @@ export interface Ad {
 export interface PageWithAds extends Page {
   ads: Ad[];
 }
+
+export interface Advertiser {
+  id: number;
+  name: string;
+  first_seen_at: string;
+  paper_count: number;
+  total_ad_count: number;
+}
+
+export interface AdvertiserPaper {
+  id: number;
+  advertiser_id: number;
+  paper_id: number;
+  ad_count: number;
+  first_seen: string;
+  last_seen: string;
+}

@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import type { Paper, Edition } from "@/lib/types";
+import type { Paper, Edition, Advertiser } from "@/lib/types";
 import Link from "next/link";
 
 export const revalidate = 60;
@@ -52,8 +52,19 @@ async function getPapersWithLatestEdition() {
   return results;
 }
 
+async function getTopAdvertisers() {
+  const { data } = await supabase
+    .from("advertisers")
+    .select("*")
+    .order("total_ad_count", { ascending: false })
+    .limit(10);
+
+  return (data as Advertiser[]) ?? [];
+}
+
 export default async function Dashboard() {
   const papers = await getPapersWithLatestEdition();
+  const topAdvertisers = await getTopAdvertisers();
 
   return (
     <div>
@@ -90,6 +101,41 @@ export default async function Dashboard() {
               </div>
             </Link>
           ))}
+        </div>
+      )}
+
+      {topAdvertisers.length > 0 && (
+        <div className="mt-12">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold">Top Advertisers</h2>
+            <Link href="/advertisers" className="text-sm text-blue-600 hover:text-blue-800">
+              View all →
+            </Link>
+          </div>
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600">Advertiser</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-600">Papers</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-600">Total Ads</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {topAdvertisers.map((adv) => (
+                  <tr key={adv.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <Link href={`/advertisers/${adv.id}`} className="text-blue-600 hover:text-blue-800">
+                        {adv.name}
+                      </Link>
+                    </td>
+                    <td className="text-right px-4 py-3 text-gray-600">{adv.paper_count}</td>
+                    <td className="text-right px-4 py-3 text-gray-600">{adv.total_ad_count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </div>
