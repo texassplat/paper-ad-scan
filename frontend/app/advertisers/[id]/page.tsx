@@ -179,7 +179,7 @@ export default function AdvertiserDetailPage() {
                   <td className="px-4 py-3">
                     {ad.paper_slug && ad.edition_date ? (
                       <Link
-                        href={`/${ad.paper_slug}/${ad.edition_date}`}
+                        href={`/${ad.paper_slug}/${ad.edition_date}?page=${ad.page_num}`}
                         className="text-blue-600 hover:text-blue-800"
                       >
                         {ad.edition_date}

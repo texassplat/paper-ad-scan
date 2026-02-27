@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { supabase, getImageUrl } from "@/lib/supabase";
 import type { Paper, Edition, PageWithAds, Ad } from "@/lib/types";
 import Link from "next/link";
@@ -11,8 +11,10 @@ import AdTable from "@/components/AdTable";
 
 export default function EditionPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const slug = params.paper as string;
   const date = params.date as string;
+  const targetPage = searchParams.get("page");
 
   const [paper, setPaper] = useState<Paper | null>(null);
   const [edition, setEdition] = useState<Edition | null>(null);
@@ -69,13 +71,17 @@ export default function EditionPage() {
 
       setPages(pagesWithAds);
       if (pagesWithAds.length > 0) {
-        setSelectedPage(pagesWithAds[0]);
+        // Jump to specific page if ?page=N in URL
+        const target = targetPage
+          ? pagesWithAds.find((p) => p.page_num === parseInt(targetPage))
+          : null;
+        setSelectedPage(target ?? pagesWithAds[0]);
       }
       setLoading(false);
     }
 
     load();
-  }, [slug, date]);
+  }, [slug, date, targetPage]);
 
   if (loading) {
     return (
