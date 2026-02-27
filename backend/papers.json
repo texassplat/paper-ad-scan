@@ -1,0 +1,16 @@
+[
+  {
+    "slug": "ajc",
+    "name": "Atlanta Journal-Constitution",
+    "account_guid": "6dfa9ed1-0422-410f-87ca-d1b9e2242d26",
+    "pub_guid": "c5478649-05c2-49ad-9482-128a089f3d3d",
+    "credential_prefix": "AJC"
+  },
+  {
+    "slug": "dmn",
+    "name": "Dallas Morning News",
+    "account_guid": "",
+    "pub_guid": "",
+    "credential_prefix": "DMN"
+  }
+]

@@ -1,0 +1,7 @@
+# Client names to search for in ads (one per line)
+# Lines starting with # are comments
+# Add your client names below:
+
+Zerorez
+Marvin Windows
+Kroger
