@@ -75,12 +75,15 @@ If you find any ads from these specific clients, make sure to note them clearly.
     prompt = f"""Analyze this newspaper page image and identify all PAID ADVERTISEMENTS.
 
 CRITICAL RULES:
+- A paid ad MUST contain a call to action or response mechanism: a website URL, phone number, QR code, physical address, "visit us", "call now", coupon code, or similar lead-generation text. If there is no way for a reader to respond or take action, it is NOT a paid ad.
+- Brand logos appearing in photos, event backdrops, sponsorship signage, or editorial images are NOT ads. A Mercedes logo on a press conference backdrop is editorial photography, not a Mercedes ad.
 - Each ad is a single rectangular block placed by ONE advertiser/company. One ad = one advertiser.
 - Standard newspaper ad sizes are: full page, half page, quarter page, eighth page, strip/banner.
 - An ad may contain images of products, cars, people, logos, etc. — these are PART OF the ad, not separate ads. For example, a credit union ad showing a car for auto loans is ONE ad by the credit union, NOT a separate car ad.
 - The advertiser is whoever PAID for the ad — look for the company name, logo, phone number, or website in the ad. Stock photos and product images within an ad do not indicate a separate advertiser.
 - Do NOT count editorial content, news articles, photos, weather, comics, or other non-advertising content.
 - Do NOT count the newspaper's own house ads or section headers.
+- Do NOT count sponsorship logos, event branding, or incidental brand appearances in photographs.
 
 For each advertisement, provide:
 1. Advertiser name (the company/business that paid for the ad)
