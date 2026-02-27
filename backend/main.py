@@ -21,6 +21,7 @@ from pathlib import Path
 from scraper import PageSuiteScraper
 from analyzer import analyze_page, AdInfo
 from matcher import load_clients
+from notify import send_error_email
 
 
 def load_paper_configs() -> list[dict]:
@@ -255,11 +256,19 @@ def main():
         all_ads = []
         for date in dates:
             date_str = date.strftime("%Y-%m-%d")
-            ads = process_date(scraper, date, clients,
-                              upload=args.upload, paper_config=paper_config)
-            for ad in ads:
-                ad['date'] = date_str
-            all_ads.extend(ads)
+            try:
+                ads = process_date(scraper, date, clients,
+                                  upload=args.upload, paper_config=paper_config)
+                for ad in ads:
+                    ad['date'] = date_str
+                all_ads.extend(ads)
+            except Exception as e:
+                print(f"\nERROR processing {slug} {date_str}: {e}")
+                send_error_email(
+                    subject=f"Error processing {slug} {date_str}",
+                    error=e,
+                    context=f"Paper: {name} ({slug}), Date: {date_str}"
+                )
 
         # Filter if requested
         if args.clients_only:
@@ -287,4 +296,13 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"\nFATAL ERROR: {e}")
+        send_error_email(
+            subject=f"Fatal error: {type(e).__name__}",
+            error=e,
+            context="main() top-level"
+        )
+        raise
